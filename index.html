@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload and Prediction</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Consolas, monospace;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1{
+            color: magenta;
+            font-size: 42px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        h2{
+            color: whitesmoke;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        label {
+            background-color: magenta;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        label:hover {
+            background-color: darkmagenta;
+        }
+
+        #uploadedImage {
+            max-width: 400px;
+            max-height: 400px;
+            margin-top: 20px;
+            border: 10px solid white;
+        }
+
+        #predictionResult {
+            color: magenta;
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        br {
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function uploadImage() {
+            var formData = new FormData();
+            var imageInput = document.getElementById('imageInput');
+            formData.append('image', imageInput.files[0]);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#uploadedImage').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(imageInput.files[0]);
+
+            $.ajax({
+                url: 'http://127.0.0.1:5000/predict',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if(response.predicted_class == "COVID19")
+                    {
+                        $("#predictionResult").text("This person has " + response.predicted_class);
+                    }
+
+                    if(response.predicted_class == "NORMAL")
+                    {
+                        $("#predictionResult").text("This person is " + response.predicted_class);
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    $("#predictionResult").text("Error occurred.");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>WOWDAO</h1>    
+    <h2>Upload an Image</h2>
+    <label for="imageInput">Choose Image</label>
+    <input type="file" id="imageInput">
+    <button onclick="uploadImage()">Upload</button>
+    <br>
+    <h2>Uploaded Image</h2>
+    <img id="uploadedImage">
+    <br>
+    <h2>Prediction Result</h2>
+    <p id="predictionResult"></p>
+</body>
+</html>
